@@ -105,7 +105,7 @@ parameters {
 
 }
 
-transformed parameters{
+transformed parameters {
 
   // Vector for holding this years daily predicted passage
   vector [n_day_pss_all] ps_pred_curr;
@@ -288,7 +288,7 @@ model {
 }
 
 
-generated quantities{
+generated quantities {
 
   real ln_prior_pf;
 

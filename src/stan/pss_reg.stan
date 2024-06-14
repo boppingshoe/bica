@@ -49,7 +49,7 @@ parameters {
 }
 
 
-transformed parameters{
+transformed parameters {
 
   //Empty vector for cum sum of counts for each year to myyear -1
   array[n_year_pss] real cum_hist_pss;
@@ -108,7 +108,7 @@ model {
 
 }
 
-generated quantities{
+generated quantities {
 
   real ln_prior_pf;
   real prior_pf;

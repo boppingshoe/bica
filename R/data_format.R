@@ -416,7 +416,9 @@ format_bica_data <- function(
       "loc_pf_years_pss" = loc_pf_years_pss,
       "loc_all_days_my_day" = loc_all_days_my_day,
       "mean_prop_eagle" = mean_prop_eagle,
-      "my_day" = my_day
+      "my_day" = my_day,
+      # append for pss_prop_es_prop
+      "pss_mat_prop_all" = pss_mat_prop_all
     )
 
   return(dat_out)

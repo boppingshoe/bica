@@ -4,8 +4,6 @@
 #' Format data for BICA model
 #'
 #' @param bica_data Input data as a list (from format _bica_data())
-#' @param normal Logical, `TRUE` if running "pss_norm..." model
-#' @param logistic Logical, `TRUE` if running "pss_logistic..." model
 #' @param n_chains Number of MCMC chains
 #' @param n_iter Number of MCMC iterations
 #' @param n_thin Amount of thinning for MCMC chains
@@ -17,8 +15,7 @@
 #' @examples
 #'
 run_bica_model <- function(
-    bica_data,
-    model_version, normal = FALSE, logistic = FALSE,
+    bica_data, model_version,
     n_chains, n_iter, n_thin
 ) {
 
@@ -43,24 +40,8 @@ run_bica_model <- function(
       "curr_pss" = curr_pss,
       "loc_pf_years_pss" = loc_pf_years_pss
     ))
-  # dat_in <-
-  #   list(
-  #     "pf" = bica_data$pf,
-  #     "pf_sigma" = bica_data$pf_sigma,
-  #     "n_years_pf" = bica_data$n_years_pf,
-  #     "n_total_eos" = bica_data$n_total_eos,
-  #     "total_eos" = bica_data$total_eos,
-  #     "n_day_pss" = bica_data$n_day_pss,
-  #     "day_pss" = bica_data$day_pss,
-  #     "n_year_pss" = bica_data$n_year_pss,
-  #     "year_pss" = bica_data$year_pss,
-  #     "pss_mat" = bica_data$pss_mat,
-  #     "n_curr_pss" = bica_data$n_curr_pss,
-  #     "curr_pss" = bica_data$curr_pss,
-  #     "loc_pf_years_pss" = bica_data$loc_pf_years_pss
-  #   )
 
-  if (model_version == "pss_normal_es_prop") {
+  if (model_version != "pss_reg") {
     dat_in <-
       with(bica_data, append(dat_in,
                              list(
@@ -79,31 +60,35 @@ run_bica_model <- function(
                                "curr_eagle" = curr_eagle,
                                "loc_eagle_years" = loc_eagle_years,
                                "loc_pf_years_eagle" = loc_pf_years_eagle,
-                               "loc_all_days_my_day" = loc_all_days_my_day,
                                "mean_prop_eagle" = mean_prop_eagle,
                                "my_day" = my_day
                              )))
   }
 
-
+  if (model_version == "pss_normal_es_prop") {
+    dat_in <-
+      with(bica_data,
+           append(dat_in, list("loc_all_days_my_day" = loc_all_days_my_day)))
+  } else if (model_version == "pss_prop_es_prop") {
+    dat_in <-
+      with(bica_data,
+           append(dat_in, list("pss_mat_prop_all" = pss_mat_prop_all)))
+  }
+  
   # Stan Model Call ######################################
-  if (logistic == TRUE) { # Logistic model inits list
+  if (model_version == "pss_prop_es_prop") {
     inits <- function(...) {
       list(
-        "ps_alpha_curr" = runif(1, 1e5, 11e4),
-        "ps_mid_curr" = runif(1, 168, 170),
-        "ps_shape_curr" = runif(1, 2, 3),
-        "ps_shape_hist" = runif(dat_in$n_year_pss, 2, 3),
-        "ps_mid_hist" = runif(dat_in$n_year_pss, 168, 170),
-        "ps_alpha_hist" = runif(dat_in$n_year_pss, 1e5, 11e4),
-        "sigma" = runif(1, 0.1, 0.5),
-        "sigma_hist" = runif(dat_in$n_year_pss, 0, 1),
-        "beta" = runif(1, 0.3, 0.5),
-        "sigma_reg" = runif(1, 0, 1),
-        "alpha" = runif(1, 500, 1500)
+        alpha = runif(1, 500, 1500),
+        beta = runif(1, 0.3, 0.5),
+        sigma = runif(1, 0.1, 0.5),
+        # mid = runif(1, 150, 200),
+        # shape = runif(1, 3, 10),
+        # sigma_logistic = runif(1, 0, 0.1),
+        ln_run_size = runif(1, 5, 15)
       )
     }
-  } else if (normal == TRUE) { # Normal Distribution Inits List
+  } else if (model_version == "pss_normal_es_prop") {
     inits <- function(...) {
       list(
         ps_alpha_curr = runif(1, 10e4, 11e4),
@@ -120,8 +105,7 @@ run_bica_model <- function(
         ln_run_size = runif(1, 5, 15)
       )
     }
-  } else if(normal == FALSE & logistic == FALSE) {
-    # Used for all regression based models
+  } else if(model_version == "pss_reg") {
     inits <- function(...) {
       list(
         alpha = runif(1, 150000, 200000),
