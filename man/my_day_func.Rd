@@ -7,10 +7,17 @@
 my_day_func(Month, Day)
 }
 \arguments{
-\item{Month}{numeric month}
+\item{Month}{Numeric month}
 
-\item{Day}{numeric day}
+\item{Day}{Numeric day}
+}
+\value{
+Julian date (non-leap year) for the Inseason Bayesian Projection Model
 }
 \description{
 Getting day of year
+}
+\examples{
+my_day_func(6, 10)
+
 }

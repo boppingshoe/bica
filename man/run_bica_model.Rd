@@ -7,7 +7,7 @@
 run_bica_model(bica_data, model_version, n_chains, n_iter, n_thin)
 }
 \arguments{
-\item{bica_data}{Input data as a list (from format _bica_data())}
+\item{bica_data}{Input data as a list (from format_bica_data())}
 
 \item{model_version}{Character string. Model version to run.}
 
@@ -17,6 +17,17 @@ run_bica_model(bica_data, model_version, n_chains, n_iter, n_thin)
 
 \item{n_thin}{Amount of thinning for MCMC chains}
 }
+\value{
+Results and summaries from BICA model run
+}
 \description{
 Format data for BICA model
+}
+\examples{
+\donotrun{
+bica_out <- bica::run_bica_model(bica_data, model_version = "pss_prop_es_prop", n_chains = 4, n_iter = 5000, n_thin = 5)
+
+bica_out$summary
+}
+
 }

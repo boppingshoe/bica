@@ -12,7 +12,7 @@ format_bica_data(
   can_hist,
   pss_hist,
   eagle_hist,
-  gsi_by_year,
+  gsi_by_year = NULL,
   pss_sd,
   prior_df_log,
   prior_df_norm,
@@ -27,26 +27,49 @@ format_bica_data(
 
 \item{end_year}{Last Complete Year}
 
-\item{pf_hist}{PF for 2007-present}
+\item{pf_hist}{Pre-season forecasts from 2007 to present}
 
-\item{can_hist}{EOS total Canadian-origin Chinook est (DF)}
+\item{can_hist}{EOS total Canadian-origin Chinook estimates}
 
-\item{pss_hist}{Daily PSS passage (DF)}
+\item{pss_hist}{Daily Pilot Station Sonar passage estimates}
 
-\item{eagle_hist}{Eagle sonar passage}
+\item{eagle_hist}{Eagle sonar passage estimates}
 
-\item{gsi_by_year}{Genetic apportionment of Can-origin Chinook}
+\item{gsi_by_year}{Genetic apportionment of Canadian-origin Chinook}
 
 \item{pss_sd}{Variance estimates for PSS}
 
-\item{prior_df_log}{priors for logistic params}
+\item{prior_df_log}{Priors for logistic model parameters}
 
-\item{prior_df_norm}{priors for normal params}
+\item{prior_df_norm}{Priors for normal model parameters}
 
 \item{start_day_pss}{First day of PSS calculation}
 
 \item{start_year_pss}{First year to include in PSS}
 }
+\value{
+A list of input data for the BICA model
+}
 \description{
 Format data for BICA model
+}
+\examples{
+\dontrun{
+wd <- getwd() # path to working folder
+dir.data <- file.path(wd, "data")
+my_year <- 2023
+my_day <- bica::my_day_func(Month = 8, Day = 9)
+end_year <- my_year - 1
+pf_hist <- readRDS(file.path(dir.data, "Yukon Canadian Chinook PF 29May24.RDS"))
+can_hist <- readRDS(file.path(dir.data, "Canadian Chinook Passage RR 2Apr24.RDS"))
+pss_hist <- read_xlsx(file.path(dir.data, "ADFG PSS Daily Reports/Yukon Escapement Daily 9Aug23.xlsx"), skip = 3)
+eagle_hist <- read_xlsx(file.path(dir.data, "ADFG Eagle Daily Reports/Yukon Escapement Daily Eagle 9Aug23.xlsx"), skip = 3)
+# gsi_by_year <- readRDS(file = file.path(dir.data, "GSI by year unadj 4Apr24.RDS")) # optional
+pss_sd <- readRDS(file = file.path(dir.data, "PSS SD 1995_2021.RDS"))
+prior_df_log <- read.csv(file = file.path(dir.data, "logistic curve parameters All Chinook 1995_2022.csv"))
+prior_df_norm <- readRDS(file = file.path(dir.data, "normal curve parameters All Chinook 1995_2023.RDS"))
+
+bica_data <- bica::format_bica_data(my_year, my_day, end_year, pf_hist, can_hist, pss_hist, eagle_hist, gsi_by_year = NULL, pss_sd, prior_df_log, prior_df_norm, start_day_pss = 148, start_year_pss = 1995)
+}
+
 }
