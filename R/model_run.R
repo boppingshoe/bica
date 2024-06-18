@@ -1,18 +1,25 @@
 
-# Project Name: Yukon River INSEASON FORECAST - Integrated Bayesian Inseason Model
+# Yukon River INSEASON FORECAST - Integrated Bayesian Inseason Model
 
 #' Format data for BICA model
 #'
-#' @param bica_data Input data as a list (from format _bica_data())
+#' @param bica_data Input data as a list (from format_bica_data())
+#' @param model_version Character string. Model version to run.
 #' @param n_chains Number of MCMC chains
 #' @param n_iter Number of MCMC iterations
 #' @param n_thin Amount of thinning for MCMC chains
-#' @param model_version Character string. Model version to run.
 #'
 #' @return
+#' Results and summaries from BICA model run
+#' 
 #' @export
 #'
 #' @examples
+#' \donotrun{
+#' bica_out <- bica::run_bica_model(bica_data, model_version = "pss_prop_es_prop", n_chains = 4, n_iter = 5000, n_thin = 5)
+#'
+#' bica_out$summary
+#' }
 #'
 run_bica_model <- function(
     bica_data, model_version,
@@ -82,7 +89,7 @@ run_bica_model <- function(
         alpha = runif(1, 500, 1500),
         beta = runif(1, 0.3, 0.5),
         sigma = runif(1, 0.1, 0.5),
-        # mid = runif(1, 150, 200),
+        # mid = runif(1, 150, 200), # customization seems to be worse off than default random
         # shape = runif(1, 3, 10),
         # sigma_logistic = runif(1, 0, 0.1),
         ln_run_size = runif(1, 5, 15)
@@ -137,12 +144,6 @@ run_bica_model <- function(
     save_cmdstan_config = TRUE
   )
 
-  # Record any divergent transitions
-  # divergent <- get_divergent_iterations(fit)
-  # n <- sum(divergent)
-  # N <- length(divergent)
-  # div.trans <- n / N
-
   fit_summary <- fit$summary()
 
   # Extract parameter estimates
@@ -152,24 +153,7 @@ run_bica_model <- function(
   # Extract fit summary for saving
 
   out <- list(
-    # "cum_pss" = cum_pss,
-    # "cum_curr_pss" = cum_curr_pss,
-    # "day_pss" = day_pss,
-    # "curr_pss" = curr_pss,
-    # "cum_pss_adj"= cum_pss_adj,
-    # "cum_eagle" = cum_eagle,
-    # "cum_pss_all" = cum_pss_all,
-    # "total_eos" = total_eos,
-    # "my_year" = my_year,
-    # "my_day" = my_day,
-    # "pss_days_all" = day_pss_all,
-    # "cum_pss_mat" = cum_pss_mat,
-    # "pss_mat" = pss_mat,
-    # "pss_mat_all_adj" = pss_mat_all_adj,
-    # "pss_mat_all" = pss_mat_all,
-    # "year_pss" = year_pss,
-    # "divergent_trans" = div.trans,
-    # "fit" = fit,
+    # "fit" = fit, # might take forever if included
     "summary" = fit_summary,
     "pars" = pars,
     "version" = model_version

@@ -1,23 +1,21 @@
 
-# Bayesian Inseason Chinook Abundance model
+# Yukon River INSEASON FORECAST - Integrated Bayesian Inseason Model
 # Utility functions
 
 #' Getting day of year
 #'
-#' @param Month numeric month
-#' @param Day numeric day
+#' @param Month Numeric month
+#' @param Day Numeric day
 #'
 #' @return
+#' Julian date (non-leap year) for the Inseason Bayesian Projection Model
+#' 
 #' @export
 #'
 #' @examples
+#' my_day_func(6, 10)
 #'
 my_day_func <- function(Month, Day) {
-  # Function to get day for the Inseason Bayesian Projection Model
-  # Enter Month as a number
-  # Testing
-  # Month <- 6 ; Day <- 25
-
   # Df for storing dates
   date.df <- data.frame("dayofyear" = c(148:260),
                         "date" = seq(from = as.Date("2022-05-28"),
@@ -31,3 +29,5 @@ my_day_func <- function(Month, Day) {
 
   return(my_day)
 }
+
+
