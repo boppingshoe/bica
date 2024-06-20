@@ -144,18 +144,26 @@ run_bica_model <- function(
     save_cmdstan_config = TRUE
   )
 
-  fit_summary <- fit$summary()
-
   # Extract parameter estimates
+  
+  # RStan fit
   stanfit <- rstan::read_stan_csv(fit$output_files())
   pars <- rstan::extract(stanfit)
-
-  # Extract fit summary for saving
+  # divergent <- rstan::get_divergent_iterations(stanfit)
+  # div_trans <- mean(divergent)
+  
+  # CmdStanR fit
+  # fit_summary <- fit$summary()
+  # pars <- fit$draws(format = "df")
+  diagnostics <- fit$diagnostic_summary()
 
   out <- list(
     # "fit" = fit, # might take forever if included
-    "summary" = fit_summary,
+    "stanfit" = stanfit,
+    # "summary" = fit_summary,
     "pars" = pars,
+    "diagnostics" = diagnostics,
+    # "divergent_trans" = div_trans,
     "version" = model_version
   )
 

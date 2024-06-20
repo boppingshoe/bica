@@ -156,7 +156,7 @@ transformed parameters{
   
   // Fit logistic to obs PSS proportions
   for(d in 1:n_day_pss_all) {
-    ps_prop_pred[d] =  (1/(1 + exp((-(day_pss_all[d] - mid)) / shape)));
+    ps_prop_pred[d] = 1 / (1 + exp((-(day_pss_all[d] - mid)) / shape));
   }
 
   // Regress cumulative total PSS against the EOS Can run size
