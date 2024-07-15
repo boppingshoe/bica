@@ -12,10 +12,10 @@ format_bica_data(
   can_hist,
   pss_hist,
   eagle_hist,
-  gsi_by_year = NULL,
-  pss_sd,
   prior_df_log,
   prior_df_norm,
+  gsi_by_year = NULL,
+  pss_sd = NULL,
   start_day_pss = 148,
   start_year_pss = 1995
 )
@@ -35,13 +35,13 @@ format_bica_data(
 
 \item{eagle_hist}{Eagle sonar passage estimates}
 
-\item{gsi_by_year}{Genetic apportionment of Canadian-origin Chinook}
-
-\item{pss_sd}{Variance estimates for PSS}
-
 \item{prior_df_log}{Priors for logistic model parameters}
 
 \item{prior_df_norm}{Priors for normal model parameters}
+
+\item{gsi_by_year}{Genetic apportionment of Canadian-origin Chinook}
+
+\item{pss_sd}{Variance estimates for PSS}
 
 \item{start_day_pss}{First day of PSS calculation}
 
@@ -65,11 +65,11 @@ can_hist <- readRDS(file.path(dir.data, "Canadian Chinook Passage RR 2Apr24.RDS"
 pss_hist <- read_xlsx(file.path(dir.data, "ADFG PSS Daily Reports/Yukon Escapement Daily 9Aug23.xlsx"), skip = 3)
 eagle_hist <- read_xlsx(file.path(dir.data, "ADFG Eagle Daily Reports/Yukon Escapement Daily Eagle 9Aug23.xlsx"), skip = 3)
 # gsi_by_year <- readRDS(file = file.path(dir.data, "GSI by year unadj 4Apr24.RDS")) # optional
-pss_sd <- readRDS(file = file.path(dir.data, "PSS SD 1995_2021.RDS"))
+# pss_sd <- readRDS(file = file.path(dir.data, "PSS SD 1995_2021.RDS")) # optional
 prior_df_log <- read.csv(file = file.path(dir.data, "logistic curve parameters All Chinook 1995_2022.csv"))
 prior_df_norm <- readRDS(file = file.path(dir.data, "normal curve parameters All Chinook 1995_2023.RDS"))
 
-bica_data <- bica::format_bica_data(my_year, my_day, end_year, pf_hist, can_hist, pss_hist, eagle_hist, gsi_by_year = NULL, pss_sd, prior_df_log, prior_df_norm, start_day_pss = 148, start_year_pss = 1995)
+bica_data <- bica::format_bica_data(my_year, my_day, end_year, pf_hist, can_hist, pss_hist, eagle_hist, prior_df_log, prior_df_norm, gsi_by_year = NULL, pss_sd = NULL, start_day_pss = 148, start_year_pss = 1995)
 }
 
 }

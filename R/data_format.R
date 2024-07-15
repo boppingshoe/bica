@@ -10,10 +10,10 @@
 #' @param can_hist EOS total Canadian-origin Chinook estimates
 #' @param pss_hist Daily Pilot Station Sonar passage estimates
 #' @param eagle_hist Eagle sonar passage estimates
-#' @param gsi_by_year Genetic apportionment of Canadian-origin Chinook
-#' @param pss_sd Variance estimates for PSS
 #' @param prior_df_log Priors for logistic model parameters
 #' @param prior_df_norm Priors for normal model parameters
+#' @param gsi_by_year Genetic apportionment of Canadian-origin Chinook
+#' @param pss_sd Variance estimates for PSS
 #' @param start_day_pss First day of PSS calculation
 #' @param start_year_pss First year to include in PSS
 #'
@@ -36,18 +36,18 @@
 #' pss_hist <- read_xlsx(file.path(dir.data, "ADFG PSS Daily Reports/Yukon Escapement Daily 9Aug23.xlsx"), skip = 3)
 #' eagle_hist <- read_xlsx(file.path(dir.data, "ADFG Eagle Daily Reports/Yukon Escapement Daily Eagle 9Aug23.xlsx"), skip = 3)
 #' # gsi_by_year <- readRDS(file = file.path(dir.data, "GSI by year unadj 4Apr24.RDS")) # optional
-#' pss_sd <- readRDS(file = file.path(dir.data, "PSS SD 1995_2021.RDS"))
+#' # pss_sd <- readRDS(file = file.path(dir.data, "PSS SD 1995_2021.RDS")) # optional
 #' prior_df_log <- read.csv(file = file.path(dir.data, "logistic curve parameters All Chinook 1995_2022.csv"))
 #' prior_df_norm <- readRDS(file = file.path(dir.data, "normal curve parameters All Chinook 1995_2023.RDS"))
 #'
-#' bica_data <- bica::format_bica_data(my_year, my_day, end_year, pf_hist, can_hist, pss_hist, eagle_hist, gsi_by_year = NULL, pss_sd, prior_df_log, prior_df_norm, start_day_pss = 148, start_year_pss = 1995)
+#' bica_data <- bica::format_bica_data(my_year, my_day, end_year, pf_hist, can_hist, pss_hist, eagle_hist, prior_df_log, prior_df_norm, gsi_by_year = NULL, pss_sd = NULL, start_day_pss = 148, start_year_pss = 1995)
 #' }
 #'
 format_bica_data <- function(
     my_year, my_day, end_year,
     pf_hist, can_hist, pss_hist, eagle_hist,
-    gsi_by_year = NULL,
-    pss_sd, prior_df_log, prior_df_norm,
+    prior_df_log, prior_df_norm,
+    gsi_by_year = NULL, pss_sd = NULL,
     start_day_pss = 148, start_year_pss = 1995
 ) {
 
@@ -414,18 +414,20 @@ format_bica_data <- function(
   n_ps_alpha_norm <- length(ps_alpha_norm)
   
   # PSS SD (Uncertainty)
-  temp_sd <- pss_sd %>%
-    dplyr::filter(Day <= my_day, Year != my_year, Year >= start_year_pss) %>%
-    dplyr::summarise(sd = sqrt(sum(Var)), .by = Year)
-  
-  full_temp_sd <- dplyr::tibble(Year = year_pss) %>%
-    dplyr::left_join(temp_sd, by = "Year") %>%
-    tidyr::replace_na(list(sd = 0))
-  
-  pss_year_sd <- full_temp_sd$sd %>% purrr::set_names(year_pss)
-  
-  curr_pss_year_sd <-
-    sqrt(sum(pss_sd$Var[pss_sd$Day <= my_day & pss_sd$Year == my_year]))
+  if (!is.null(pss_sd)) {
+    temp_sd <- pss_sd %>%
+      dplyr::filter(Day <= my_day, Year != my_year, Year >= start_year_pss) %>%
+      dplyr::summarise(sd = sqrt(sum(Var)), .by = Year)
+    
+    full_temp_sd <- dplyr::tibble(Year = year_pss) %>%
+      dplyr::left_join(temp_sd, by = "Year") %>%
+      tidyr::replace_na(list(sd = 0))
+    
+    pss_year_sd <- full_temp_sd$sd %>% purrr::set_names(year_pss)
+    
+    curr_pss_year_sd <-
+      sqrt(sum(pss_sd$Var[pss_sd$Day <= my_day & pss_sd$Year == my_year]))
+  }
   
   
   # data list that goes to Stan model ######################################
@@ -480,10 +482,15 @@ format_bica_data <- function(
     "ps_alpha_log" = ps_alpha_log,
     "n_ps_m" = n_ps_m,
     "n_ps_s" = n_ps_s,
-    "n_ps_alpha_log" = n_ps_alpha_log,
-    "curr_pss_year_sd" = curr_pss_year_sd,
-    "pss_year_sd" = pss_year_sd
+    "n_ps_alpha_log" = n_ps_alpha_log
   ))
+  
+  if (!is.null(pss_sd)) {
+    dat_out <- append(dat_out, list(
+      "curr_pss_year_sd" = curr_pss_year_sd,
+      "pss_year_sd" = pss_year_sd
+    ))
+  }
   
   if (!is.null(gsi_by_year)) {
     dat_out <- append(dat_out, list(
