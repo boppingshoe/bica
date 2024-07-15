@@ -37,16 +37,16 @@
 #' eagle_hist <- read_xlsx(file.path(dir.data, "ADFG Eagle Daily Reports/Yukon Escapement Daily Eagle 9Aug23.xlsx"), skip = 3)
 #' # gsi_by_year <- readRDS(file = file.path(dir.data, "GSI by year unadj 4Apr24.RDS")) # optional
 #' # pss_sd <- readRDS(file = file.path(dir.data, "PSS SD 1995_2021.RDS")) # optional
-#' prior_df_log <- read.csv(file = file.path(dir.data, "logistic curve parameters All Chinook 1995_2022.csv"))
+#' # prior_df_log <- read.csv(file = file.path(dir.data, "logistic curve parameters All Chinook 1995_2022.csv")) # optional
 #' prior_df_norm <- readRDS(file = file.path(dir.data, "normal curve parameters All Chinook 1995_2023.RDS"))
 #'
-#' bica_data <- bica::format_bica_data(my_year, my_day, end_year, pf_hist, can_hist, pss_hist, eagle_hist, prior_df_log, prior_df_norm, gsi_by_year = NULL, pss_sd = NULL, start_day_pss = 148, start_year_pss = 1995)
+#' bica_data <- bica::format_bica_data(my_year, my_day, end_year, pf_hist, can_hist, pss_hist, eagle_hist, prior_df_norm, prior_df_log = NULL, gsi_by_year = NULL, pss_sd = NULL, start_day_pss = 148, start_year_pss = 1995)
 #' }
 #'
 format_bica_data <- function(
     my_year, my_day, end_year,
     pf_hist, can_hist, pss_hist, eagle_hist,
-    prior_df_log, prior_df_norm,
+    prior_df_norm, prior_df_log = NULL,
     gsi_by_year = NULL, pss_sd = NULL,
     start_day_pss = 148, start_year_pss = 1995
 ) {
@@ -379,23 +379,6 @@ format_bica_data <- function(
     }
   } # end if (!is.null(gsi_by_year))
 
-  # Logistic parameters for informative prior (PSSlogistic_ESprop)
-  ps_m <- prior_df_log$mid[prior_df_log$year != my_year &
-                             prior_df_log$year >= start_year_pss &
-                             prior_df_log$year <= end_year]
-  
-  ps_s <- prior_df_log$sd[prior_df_log$year != my_year&
-                            prior_df_log$year >= start_year_pss &
-                            prior_df_log$year <= end_year]
-  
-  ps_alpha_log <- prior_df_log$alpha[prior_df_log$year != my_year&
-                                       prior_df_log$year >= start_year_pss &
-                                       prior_df_log$year <= end_year]
-  
-  n_ps_m <- length(ps_m)
-  n_ps_s <- length(ps_s)
-  n_ps_alpha_log <- length(ps_alpha_log)
-  
   # Normal distribution parameters for informative priors (PSSnormal_ESprop)
   ps_mu <- prior_df_norm$mid[prior_df_norm$year != my_year &
                                prior_df_norm$year >=start_year_pss &
@@ -412,6 +395,25 @@ format_bica_data <- function(
   n_ps_mu <- length(ps_mu)
   n_ps_sd <- length(ps_sd)
   n_ps_alpha_norm <- length(ps_alpha_norm)
+  
+  # Logistic parameters for informative prior (PSSlogistic_ESprop)
+  if (!is.null(prior_df_log)) {
+    ps_m <- prior_df_log$mid[prior_df_log$year != my_year &
+                               prior_df_log$year >= start_year_pss &
+                               prior_df_log$year <= end_year]
+    
+    ps_s <- prior_df_log$sd[prior_df_log$year != my_year&
+                              prior_df_log$year >= start_year_pss &
+                              prior_df_log$year <= end_year]
+    
+    ps_alpha_log <- prior_df_log$alpha[prior_df_log$year != my_year&
+                                         prior_df_log$year >= start_year_pss &
+                                         prior_df_log$year <= end_year]
+    
+    n_ps_m <- length(ps_m)
+    n_ps_s <- length(ps_s)
+    n_ps_alpha_log <- length(ps_alpha_log)
+  }
   
   # PSS SD (Uncertainty)
   if (!is.null(pss_sd)) {
@@ -476,14 +478,19 @@ format_bica_data <- function(
     "cum_pss_all" = cum_pss_all,
     "cum_eagle" = cum_eagle,
     "cum_curr_pss" = cum_curr_pss,
-    "cum_pss" = cum_pss,
-    "ps_m" = ps_m,
-    "ps_s" = ps_s,
-    "ps_alpha_log" = ps_alpha_log,
-    "n_ps_m" = n_ps_m,
-    "n_ps_s" = n_ps_s,
-    "n_ps_alpha_log" = n_ps_alpha_log
+    "cum_pss" = cum_pss
   ))
+  
+  if (!is.null(prior_df_log)) {
+    dat_out <- append(dat_out, list(
+      "ps_m" = ps_m,
+      "ps_s" = ps_s,
+      "ps_alpha_log" = ps_alpha_log,
+      "n_ps_m" = n_ps_m,
+      "n_ps_s" = n_ps_s,
+      "n_ps_alpha_log" = n_ps_alpha_log
+    ))
+  }
   
   if (!is.null(pss_sd)) {
     dat_out <- append(dat_out, list(
