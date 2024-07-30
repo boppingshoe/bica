@@ -18,11 +18,16 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The Bayesian Inseason Chinook Abundance (BICA) model was developed by Aaron Lambert as his Master's thesis project for the University of Alaska Fairbanks CFOS; although he called the project "the Bayesian Yukon River Canadian-origin Chinook Salmon Inseason Projection Model." As the name implied, the BICA model is designed to predict Chinook abundance for the purpose of inseason fishery management of the Alaska Department of Fish & Game (ADF&G). We developed the *bica* package to run the BICA model suite using *CmdStan* and pre-compiled *Stan* code. The benefits of *bica* package are a faster model run time and a more streamlined process.
+The Bayesian Inseason Chinook Abundance (BICA) model was developed by Aaron Lambert as his Master's thesis project for the University of Alaska Fairbanks CFOS. The project was originally called the "Bayesian Yukon River Canadian-origin Chinook Salmon Inseason Projection Model" and is designed to predict Chinook abundance for the purpose of inseason fishery management of the Alaska Department of Fish & Game (ADF&G). We developed the *bica* package to run the BICA model suite using *CmdStan* and pre-compiled *Stan* code. The benefits of *bica* package are a faster model run time and a more streamlined process.
+
 
 ## Installation
 
-You can install the development version of *bica* from [GitHub](https://github.com/boppingshoe/bica) with:
+To install *bica*:
+
+  1) Install the R package *CmdStanR* using R commend `install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))`.
+  2) Install R package *instantiate* using R commend `install.packages("instantiate")`
+  3) Install *bica* from [GitHub](https://github.com/boppingshoe/bica) with:
 
 ``` r
 # install.packages("devtools")
@@ -46,21 +51,16 @@ library(bica)
 # see Aaron's instructions on types of data needed
 dir.data <- file.path(wd, "data")
 
-my_year <- 2023
-my_day <- my_day_func(Month = 8, Day = 9)
+my_year <- 2024
+my_day <- my_day_func(Month = 7, Day = 28)
 end_year <- my_year - 1
 
-pf_hist <- readRDS(file.path(dir.data,"Yukon Canadian Chinook PF 29May24.RDS"))
-can_hist <- readRDS(file.path(dir.data,"Canadian Chinook Passage RR 2Apr24.RDS"))
+pf_hist <- readRDS(file.path(dir.data, "Yukon Canadian Chinook PF 29May24.RDS"))
+can_hist <- readRDS(file.path(dir.data, "Canadian Chinook Passage RR 2Apr24.RDS"))
 pss_hist <-
-  readxl::read_xlsx(file.path(dir.data,"ADFG PSS Daily Reports/Yukon Escapement Daily 9Aug23.xlsx"), skip = 3)
+  readxl::read_xlsx(file.path(dir.data, "ADFG PSS Daily Reports/Yukon Escapement Daily_07292024.xlsx"), skip = 3)
 eagle_hist <-
-  readxl::read_xlsx(file.path(dir.data,"ADFG Eagle Daily Reports/Yukon Escapement Daily Eagle 9Aug23.xlsx"), skip = 3)
-
-# gsi_by_year <- readRDS(file = file.path(dir.data,"GSI by year unadj 4Apr24.RDS")) # GSI data optional
-
-pss_sd <- readRDS(file = file.path(dir.data,"PSS SD 1995_2021.RDS"))
-prior_df_log <- read.csv(file = file.path(dir.data,"logistic curve parameters All Chinook 1995_2022.csv"))
+  readxl::read_xlsx(file.path(dir.data, "ADFG Eagle Daily Reports/Yukon Escapement Daily Eagle_07292024.xlsx"), skip = 3)
 prior_df_norm <- readRDS(file = file.path(dir.data,"normal curve parameters All Chinook 1995_2023.RDS"))
 
 ```
@@ -68,11 +68,11 @@ prior_df_norm <- readRDS(file = file.path(dir.data,"normal curve parameters All 
 2) Format the data sets into an object using `format_bica_data()`. The object will be used to run BICA model input:
 
 ```{r}
-bica_data <- format_bica_data(
+bica_data <- bica::format_bica_data(
   my_year, my_day, end_year,
   pf_hist, can_hist, pss_hist, eagle_hist,
-  gsi_by_year = NULL,
-  pss_sd, prior_df_log, prior_df_norm,
+  prior_df_norm, prior_df_log = NULL,
+  gsi_by_year = NULL, pss_sd = NULL,
   start_day_pss = 148, start_year_pss = 1995
 )
 
@@ -83,7 +83,7 @@ bica_data <- format_bica_data(
 ```{r}
 model_version <- "pss_prop_es_prop"
 n_chains <- 3
-n_iter <- 50
+n_iter <- 30
 n_thin <- 1
 
 bica_out <- bica::run_bica_model(
