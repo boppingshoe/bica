@@ -3,4 +3,5 @@
 export(format_bica_data)
 export(my_day_func)
 export(run_bica_model)
+export(tr_plot)
 importFrom(magrittr,"%>%")

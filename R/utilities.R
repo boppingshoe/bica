@@ -31,3 +31,33 @@ my_day_func <- function(Month, Day) {
 }
 
 
+#' Make trace plots
+#'
+#' @param obj Posterior trace from model output
+#' @param vars Variables being plotted
+#'
+#' @return
+#' Trace plots of parallel MCMC chains in ggplot
+#' 
+#' @importFrom magrittr %>%
+#'
+#' @examples
+#' \dontrun{
+#' tr_plot(bica_out$pars, c("alpha", "beta", "sigma", "ln_run_size", "lp__"))
+#' }
+#'
+#' @export
+#'
+tr_plot <- function (obj, vars) {
+  vars <- c(vars, "chain", "itr")
+  
+  tibble::as_tibble({{ obj }}) %>%
+    dplyr::rename(chain = `.chain`, itr = `.iteration`) %>%
+    dplyr::select(dplyr::all_of(vars)) %>%
+    tidyr::pivot_longer(cols = -c(chain, itr)) %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_line(ggplot2::aes(x = itr, y = value, color = factor(chain))) +
+    ggplot2::facet_grid(name ~ ., scales = "free") +
+    ggplot2::labs(color = "MC chain")
+}
+
